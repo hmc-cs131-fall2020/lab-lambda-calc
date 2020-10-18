@@ -1,0 +1,121 @@
+# --- Booleans ----------------------------------------
+
+# These are the important facts about booleans & their operations.
+# You won't need to modify these definitions.
+#
+#     ((True  m) n)  -->*  m
+#     ((False m) n)  -->*  n
+
+#     (Not True)  -->* False
+#     (Not False) -->* True
+
+#     ((And True)  True)  -->* True      ((Or True)  True)  -->* True
+#     ((And True)  False) -->* False     ((Or True)  False) -->* True
+#     ((And False) True)  -->* False     ((Or False) True)  -->* True
+#     ((And False) False) -->* False     ((Or False) False) -->* False
+
+True  = (\x.(\y.x));
+False = (\x.(\y.y));
+Not   = (\b.((b False) True));
+And   = (\b.(\c.((b c) False)));
+Or    = (\b.(\c.((b True) c)));
+
+# --- Pairs -----------------------------------------------------------
+
+# These are the important facts about pairs & their operations.
+# You won't need to modify these definitions.
+#
+#    (Fst ((Pair m) n)) -->* m
+#    (Snd ((Pair m) n)) -->* n
+
+Pair = (\x.(\y. (\b.((b x) y)) ));
+Fst = (\p.(p True));
+Snd = (\p.(p False));
+
+
+# --- Lists------------------------------------------------------------
+
+# These are the most important facts about lists & their operations.
+# You'll need to modify some of the definitions below to make these
+# facts true.
+#
+#    (IsNil Nil)          -->* True
+#    (IsNil ((Cons h) t)) -->* False
+#    (Head ((Cons h) t))  -->* h
+#    (Tail ((Cons h) t))  -->* t
+
+# Idea for lab: a "tagged" representation.
+#   * Every list is encoded as a pair.
+#   * The first component of the pair is a boolean: is this list nil?
+#   * If the list is a cons, the second component is another pair,
+#   *   containing the head value and tail of the list.
+#   * If the list is nil, the second component doesn't really matter.
+#       Let's say it will be the constant True.
+#
+# So the list [] is represented as the (encoded) pair
+#    (True, True)
+# The list [2] is represented as the pair
+#    (False, (2, (True, True)))
+# The list [1,2] is represented as
+#    (False, (1, (False, (2, (True, True)))))
+# and so on.
+#
+# (Note, There are other ways to encode lists that avoid the explicit 
+#    boolean tags, but they're more subtle/tricky to think about.)
+
+Nil = ((Pair True) True);     # The second component here is never used,
+
+Cons = (\h.(\t. ((Pair False) ((Pair h) t)))); # Given head & tail, 
+                                               # build a nested pair
+                                               #   (False, (h,t))
+
+# CHANGE/FIX THE FOLLOWING THREE DEFINITIONS TO MAKE THEM WORK
+
+IsNil = (\s. True);     # overoptimistic that every encoded list s is Nil
+Head  = (\s. True);     # wrongly believes the head of every list s is "True"
+                        #   Hint: it's an error to apply this operation to Nil,
+                        #   so you can assume the input list s was produced by Cons.
+Tail  = (\s. True);     # wrongly believes the tail of every list s is "True"
+                        #   Hint: it's an error to apply this operation to Nil,
+                        #   so you can assume the input list s was produced by Cons.
+
+
+# --- Arithmetic functions --------------------------------------------
+
+# These are the important facts about Church numerals.
+# You'll need to modify some of the definitions below to make these
+# facts true.
+#
+#    (Succ n)      -->*  (n+1)
+#    ((Plus  n) m) -->*  (n+m)
+#    ((Times n) m) -->*  (nm)
+#
+#    (Pred n)      -->*  (n-1)  if n > 0
+#    (Pred 0)      -->*  0
+#    ((Monus n) m) -->*  (n-m)  if n > m
+#    ((Monus n) m) -->*  0      if n <= m
+#
+#    (IsZero n)    -->*  True   if n == 0
+#    (IsZero n)    -->*  False  if n > 0
+#
+#    ((0 f) x)     -->*  x
+#    ((1 f) x)     -->*  (f x)
+#    ((2 f) x)     -->*  (f (f x))
+#    ((3 f) x)     -->*  (f (f (f x)))
+#    ((4 f) x)     -->*  (f (f (f (f x))))
+#    ...etc...
+
+Succ = (\n.(\f.(\x. (f ((n f) x)))));
+
+Plus = (\n.(\m. 0));          # FIX ME. 0 is rarely the correct sum
+
+Times = (\n.(\m. 1));         # FIX ME. 1 is rarely the correct product
+
+IsZero = (\n. ((n (\x.False)) True));
+
+Pred = (\n. (Fst ((n NextPair) ((Pair 0) 0))));
+
+NextPair = (\p. False);    # FIX ME. It's not returning the next pair
+
+Monus = (\n.(\m. ((m Pred) n))); # subtraction as repeated predecessor
+
